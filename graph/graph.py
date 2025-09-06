@@ -12,8 +12,8 @@ from langchain_tavily import TavilySearch
 from langgraph.prebuilt import ToolNode, tools_condition
 
 
-from models import Models
-from prompts import Prompts
+from graph.models import Models
+from graph.prompts import Prompts
 
 
 load_dotenv()
