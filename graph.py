@@ -9,7 +9,7 @@ from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain_openai import ChatOpenAI
 
-import models
+from models import MODELS
 
 
 load_dotenv()
@@ -25,9 +25,10 @@ class State(TypedDict):
 graph_builder = StateGraph(State)
 
 llm = ChatOpenAI(
-    model=models.sonnet_4,
+    model=MODELS.sonnet_4,
     base_url="https://openrouter.ai/api/v1",
-    api_key=os.environ["OPENROUTER_API_KEY"]
+    api_key=os.environ["OPENROUTER_API_KEY"],
+    streaming=True,
 )
 
 
