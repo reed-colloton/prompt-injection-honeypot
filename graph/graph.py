@@ -24,7 +24,7 @@ class State(TypedDict):
 
 graph_builder = StateGraph(State)
 checkpointer = InMemorySaver()
-current_model = Models.sonnet_4
+current_model = Models.gpt_5
 
 llm = ChatOpenAI(
     model=current_model,
