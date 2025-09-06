@@ -3,7 +3,7 @@ from langchain_core.messages import HumanMessage
 
 from graph import graph
 
-THREAD_ID = "reed's-session"
+THREAD_ID = "1"
 
 
 async def stream_graph(user_input: str):
