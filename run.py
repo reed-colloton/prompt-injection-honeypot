@@ -1,4 +1,5 @@
 import asyncio
+
 from langchain_core.messages import HumanMessage
 
 from graph import graph
@@ -18,8 +19,9 @@ async def stream_graph(user_input: str):
     print()
 
 
-while True:
-    user_input = input(f"{bcolors.OKBLUE}Ask anything: {bcolors.ENDC}")
-    if user_input.lower() in ["q", "quit", "exit"]:
-        break
-    asyncio.run(stream_graph(user_input))
+if __name__ == "__main__":
+    while True:
+        user_input = input(f"{bcolors.OKBLUE}Ask anything: {bcolors.ENDC}")
+        if user_input.lower() in ["q", "quit", "exit"]:
+            break
+        asyncio.run(stream_graph(user_input))

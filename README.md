@@ -13,3 +13,7 @@
 - Should be able to catch any tool being run, not just bank account, in the future
 - And then maybe move on to other injections besides tool calling
 
+
+## Ideas:
+- Could proxy internet searches locally or use generated content. Probablity p of malicious. 
+- Intercept p% of traffic and inject malicious instructions.

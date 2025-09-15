@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<head>
+    <title>{% block title %}{{ title or "" }}{% endblock %}</title>
+</head>
+<body>
+    <h1>{% block title %}{{ title or "" }}{% endblock %}</h1>
+    {% block content %}{{ content or "" }}{% endblock %}
+</body>
+</html>

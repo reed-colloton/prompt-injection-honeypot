@@ -3,3 +3,6 @@ langchain
 langchain-openai
 langchain-tavily
 dotenv
+requests
+beautifulsoup4
+flask

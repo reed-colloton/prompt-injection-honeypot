@@ -14,6 +14,7 @@ from langgraph.prebuilt import ToolNode, tools_condition
 
 from graph.models import Models
 from graph.tools.bank import get_balance, transfer_funds
+from graph.tools.local_scraper import localhost_scrape
 from graph.prompts import Prompts
 
 
@@ -35,7 +36,8 @@ llm = ChatOpenAI(
 )
 web_search = TavilySearch(max_results=2)
 bank_tools = [get_balance, transfer_funds]
-tools = [web_search, *bank_tools]
+local_tools = [localhost_scrape]
+tools = [web_search, *bank_tools, *local_tools]
 llm_with_tools = llm.bind_tools(tools)
 
 
