@@ -4,7 +4,7 @@ from typing import Annotated
 from typing_extensions import TypedDict
 
 from dotenv import load_dotenv
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain_openai import ChatOpenAI
@@ -13,6 +13,7 @@ from langgraph.prebuilt import ToolNode, tools_condition
 
 
 from graph.models import Models
+from graph.tools.bank import get_balance, transfer_funds
 from graph.prompts import Prompts
 
 
@@ -32,8 +33,9 @@ llm = ChatOpenAI(
     api_key=os.environ["OPENROUTER_API_KEY"],
     streaming=True,
 )
-tool = TavilySearch(max_results=2)
-tools = [tool]
+web_search = TavilySearch(max_results=2)
+bank_tools = [get_balance, transfer_funds]
+tools = [web_search, *bank_tools]
 llm_with_tools = llm.bind_tools(tools)
 
 
@@ -43,7 +45,7 @@ def chatbot(state: State):
 
 
 graph_builder.add_node("chatbot", chatbot)
-tool_node = ToolNode(tools=[tool])
+tool_node = ToolNode(tools=tools)
 graph_builder.add_node("tools", tool_node)
 graph_builder.add_conditional_edges(
     "chatbot",
