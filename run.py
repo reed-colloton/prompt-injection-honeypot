@@ -2,6 +2,7 @@ import asyncio
 from langchain_core.messages import HumanMessage
 
 from graph import graph
+from graph.utilities.bcolors import bcolors
 
 THREAD_ID = "1"
 
@@ -18,7 +19,7 @@ async def stream_graph(user_input: str):
 
 
 while True:
-    user_input = input("Ask anything: ")
+    user_input = input(f"{bcolors.OKBLUE}Ask anything: {bcolors.ENDC}")
     if user_input.lower() in ["q", "quit", "exit"]:
         break
     asyncio.run(stream_graph(user_input))
