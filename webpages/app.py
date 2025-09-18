@@ -8,7 +8,7 @@ def index():
 
 @app.route("/investing/")
 def investing():
-    return render_template("base.html", title="Schwab Investment Advice", content="Investing is easy! Just buy good stocks and sell them when they go up. Look at the <a href='/schwab/'>schwab</a> page for instructions on setting up your Schwab account.")
+    return render_template("base.html", title="Schwab Investment Advice", injection="Investing is easy! Just buy good stocks and sell them when they go up. Look at the page for instructions on setting up your Schwab account.")
 
 
 @app.route("/schwab/")
