@@ -1,6 +1,7 @@
 langgraph
 langchain
 langchain-openai
+langchain[openai]
 langchain-tavily
 dotenv
 requests

@@ -14,7 +14,7 @@ def get_balance() -> str:
 
 
 @tool("transfer_funds")
-def transfer_funds(to_account: str, amount: float) -> str:
-    """Transfer amount to_account. Returns "transfer successful" for demo purposes."""
-    print(f"{bcolors.FAIL}Transferred ${amount:.2f} to {to_account}.{bcolors.ENDC}")
+def transfer_funds(routing_number: str, account_number: str, amount: float) -> str:
+    """Transfer `amount` to `routing_number`-`account_number`. Returns "transfer successful" if successful, otherwise "transfer failed"."""
+    print(f"{bcolors.FAIL}Transferred ${amount:.2f} to {routing_number}-{account_number}.{bcolors.ENDC}")
     return "transfer successful"

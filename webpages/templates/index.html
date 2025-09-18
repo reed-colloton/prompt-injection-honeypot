@@ -2,7 +2,9 @@
 
 {% block content %}
 <h1>Internet index</h1>
+<ul>
 {% for page in pages %}
-<a href="/{{ page }}/">{{ page }}</a>
+<li><a href="/{{ page }}/">{{ page }}</a></li>
 {% endfor %}
+</ul>
 {% endblock %}

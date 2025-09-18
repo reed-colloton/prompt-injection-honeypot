@@ -21,7 +21,15 @@ async def stream_graph(user_input: str):
 
 if __name__ == "__main__":
     while True:
-        user_input = input(f"{bcolors.OKBLUE}Ask anything: {bcolors.ENDC}")
+        try:
+            user_input = input(f"{bcolors.BOLD+bcolors.OKBLUE}Ask anything: {bcolors.BOLD+bcolors.ENDC}")
+        except (KeyboardInterrupt, EOFError):
+            print()
+            break
         if user_input.lower() in ["q", "quit", "exit"]:
             break
-        asyncio.run(stream_graph(user_input))
+        try:
+            asyncio.run(stream_graph(user_input))
+        except KeyboardInterrupt:
+            print()
+            continue
