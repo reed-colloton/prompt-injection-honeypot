@@ -1,8 +1,8 @@
 class PromptInjectionHoneypot < Formula
   desc "Dual-agent honeypot that detects and blocks indirect prompt injections"
   homepage "https://github.com/reed-colloton/prompt-injection-honeypot"
-  url "https://github.com/reed-colloton/prompt-injection-honeypot/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "5c10b56b03f97d175680e2f45f907e76b178f423f0d9673b3c433490d412f44b"
+  url "https://github.com/reed-colloton/prompt-injection-honeypot/archive/refs/tags/v0.1.1.tar.gz"
+  sha256 "addd74c7fe437d6c704871f1398d0e10ddcf2b2acd7549972f02708898aff30c"
   license "MIT"
 
   depends_on "python@3.13"
