@@ -21,8 +21,8 @@ honeypot
 On the first run you're prompted for an OpenRouter API key
 ([openrouter.ai/keys](https://openrouter.ai/keys)) and a Tavily (web search) API key
 ([app.tavily.com](https://app.tavily.com/home)). They're saved to
-`~/.config/prompt-injection-honeypot/config.json`, so you're only asked once.
-Either key can also be supplied via `OPENROUTER_API_KEY`, `TAVILY_API_KEY`.
+`~/.config/prompt-injection-honeypot/config.json`.
+Can also use env vars `OPENROUTER_API_KEY`, `TAVILY_API_KEY`.
 
 ### From source
 
