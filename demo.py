@@ -94,6 +94,7 @@ async def run_task(user_input: str) -> None:
     # graph gives up (the default 25 can be hit on a long string of injections).
     config = {"configurable": {"thread_id": SESSION_THREAD}, "recursion_limit": 50}
     audit.reset()  # fresh injection tally for this task
+    interceptor.reset()  # clear any spare window left armed by a prior task
     mid_text = False  # are we currently streaming Pooh's prose?
 
     def break_text():

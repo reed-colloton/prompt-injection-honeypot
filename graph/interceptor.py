@@ -58,6 +58,20 @@ def force_clean_next() -> None:
     _spare_until_clean_page = True
 
 
+def reset() -> None:
+    """Clear cross-task state (the spare window) at the start of each task.
+
+    The spare window only exists to let Pooh's *in-task* retry land on a clean
+    source after a block; it must not leak into the next task. If a task ends
+    while still armed -- e.g. Pooh answered from search snippets and never
+    fetched a page (the only thing that clears it) -- then every fetch in the
+    next task is served clean and no injection ever fires, regardless of
+    INJECTION_PROBABILITY. The demo calls this per task so each one starts live.
+    """
+    global _spare_until_clean_page
+    _spare_until_clean_page = False
+
+
 def maybe_inject(
     content: str, source: str = "web content", is_page: bool = False
 ) -> tuple[str, str | None]:
