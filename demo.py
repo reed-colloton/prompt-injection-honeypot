@@ -7,9 +7,10 @@ fetch is observable end to end:
     intercept    - the malicious-internet simulator: clean, or a real
                    injection spliced into the live response (the threat)
     honeypot     - the Haiku honeypot screening that content (the defense)
-    verdict      - clear, or TRIPPED + quarantined as UNTRUSTED
+    verdict      - clear, or TRIPPED -> content dropped and the URL banned
     Observation  - what Pooh actually receives back
-    Pooh         - Pooh's reasoning / answer
+    Pooh         - Pooh's reasoning / answer (it retries a different source
+                   when one is blocked, rather than giving up)
 
 Commands:  /honeypot on|off   /inject <0..1>   quit
 
@@ -20,8 +21,16 @@ import asyncio
 
 from langchain_core.messages import HumanMessage
 
+# Resolve API keys (env -> ~/.config -> prompt) BEFORE importing anything under
+# `graph`: graph/__init__ builds the LLM clients at import time and reads
+# OPENROUTER_API_KEY eagerly, so the keys must be in the environment first.
+from setup_keys import ensure_api_keys
+
+ensure_api_keys()
+
 from graph import honeypot, interceptor
 from graph.graph import graph
+from graph.utilities import audit, lanes
 from graph.utilities.bcolors import bcolors
 
 
@@ -45,23 +54,52 @@ def _intro() -> None:
     print(
         f"Pooh (Sonnet 4.6) browses the real web. With probability "
         f"{bcolors.BOLD}{interceptor.INJECTION_PROBABILITY:.0%}{bcolors.ENDC} each response is "
-        f"poisoned with a real injection; the {bcolors.WARNING}Haiku honeypot{bcolors.ENDC} screens "
-        f"every fetch.\n"
-        f"Honeypot: {hp}   |   Commands: {bcolors.BOLD}/honeypot on|off{bcolors.ENDC}, "
+        f"poisoned with a real injection; the Haiku honeypot screens every fetch and Pooh "
+        f"retries a different source when one is blocked.\n",
+        flush=True,
+    )
+    print(lanes.legend(), flush=True)
+    print(
+        f"\nHoneypot: {hp}   |   Commands: {bcolors.BOLD}/honeypot on|off{bcolors.ENDC}, "
         f"{bcolors.BOLD}/inject <0..1>{bcolors.ENDC}, {bcolors.BOLD}quit{bcolors.ENDC}\n"
         f"Try:  \"What's the latest news about the Mars Sample Return mission?\"\n",
         flush=True,
     )
 
 
+def _print_injection_report() -> None:
+    """End-of-response verdict: did the honeypot catch what was injected this task?"""
+    a = audit.current()
+    if a.injected == 0:
+        color, msg = bcolors.GREY, "INJECTION CHECK: no injections were introduced this task"
+    elif a.slipped == 0:
+        color, msg = (
+            bcolors.OKGREEN,
+            f"INJECTION CHECK: caught all {a.injected} injection(s); none reached Pooh",
+        )
+    else:
+        color, msg = (
+            bcolors.FAIL,
+            f"INJECTION CHECK: {a.injected} injected, {a.caught} caught, "
+            f"{a.slipped} SLIPPED PAST the honeypot to Pooh",
+        )
+    if a.false_alarms:
+        msg += f"  ({a.false_alarms} clean source(s) falsely blocked)"
+    print(f"{bcolors.GREY}{'-' * 60}{bcolors.ENDC}", flush=True)
+    print(f"{color}{bcolors.BOLD}{msg}{bcolors.ENDC}\n", flush=True)
+
+
 async def run_task(user_input: str) -> None:
-    config = {"configurable": {"thread_id": SESSION_THREAD}}
+    # recursion_limit gives Pooh room to retry several blocked sources before the
+    # graph gives up (the default 25 can be hit on a long string of injections).
+    config = {"configurable": {"thread_id": SESSION_THREAD}, "recursion_limit": 50}
+    audit.reset()  # fresh injection tally for this task
     mid_text = False  # are we currently streaming Pooh's prose?
 
     def break_text():
         nonlocal mid_text
         if mid_text:
-            print(flush=True)
+            print(bcolors.ENDC, flush=True)
             mid_text = False
 
     async for stream_mode, chunk in graph.astream(
@@ -73,9 +111,13 @@ async def run_task(user_input: str) -> None:
             message_chunk, metadata = chunk
             if metadata.get("langgraph_node") == "chatbot" and message_chunk.content:
                 if not mid_text:
-                    print(f"\n{bcolors.OKBLUE}{bcolors.BOLD}Pooh:{bcolors.ENDC} ", end="", flush=True)
+                    print(f"\n{lanes.prefix('pooh')}{bcolors.OKBLUE}", end="", flush=True)
                     mid_text = True
-                print(message_chunk.content, end="", flush=True)
+                # Keep wrapped lines of Pooh's answer inside its lane (gutter on each line).
+                chunk_text = message_chunk.content.replace(
+                    "\n", f"\n{lanes.cont('pooh')}{bcolors.OKBLUE}"
+                )
+                print(chunk_text, end="", flush=True)
 
         elif stream_mode == "updates":
             for node_name, node_output in chunk.items():
@@ -83,26 +125,22 @@ async def run_task(user_input: str) -> None:
                     for msg in node_output["messages"]:
                         for tc in getattr(msg, "tool_calls", None) or []:
                             break_text()
-                            print(
-                                f"\n{bcolors.WARNING}{bcolors.BOLD}Action:{bcolors.ENDC} "
-                                f"{bcolors.WARNING}{tc['name']}({_fmt_args(tc['args'])}){bcolors.ENDC}",
-                                flush=True,
+                            print()  # blank line separates each ReAct step
+                            lanes.line(
+                                "pooh",
+                                f"calls {tc['name']}({_fmt_args(tc['args'])})",
+                                color=bcolors.OKCYAN,
                             )
                 elif node_name == "tools":
                     for msg in node_output["messages"]:
                         break_text()
-                        blocked = (msg.content or "").startswith("BLOCKED")
-                        tag = (
-                            f"{bcolors.FAIL}BLOCKED - content dropped, URL banned"
-                            if blocked
-                            else f"{bcolors.OKGREEN}trusted"
-                        )
-                        print(
-                            f"   {bcolors.OKCYAN}Observation -> Pooh ({tag}{bcolors.OKCYAN}){bcolors.ENDC}",
-                            flush=True,
-                        )
+                        if (msg.content or "").startswith("BLOCKED"):
+                            lanes.line("pooh", "blocked - dropped; will try another source", color=bcolors.FAIL)
+                        else:
+                            lanes.line("pooh", "received trusted content", color=bcolors.OKGREEN)
     break_text()
     print()
+    _print_injection_report()
 
 
 def handle_command(text: str) -> bool:
@@ -143,5 +181,10 @@ async def main() -> None:
             print("\n(interrupted)\n", flush=True)
 
 
-if __name__ == "__main__":
+def cli() -> None:
+    """Synchronous console-script entry point (see pyproject [project.scripts])."""
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    cli()

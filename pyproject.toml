@@ -1,0 +1,31 @@
+[project]
+name = "prompt-injection-honeypot"
+version = "0.1.0"
+description = "Dual-agent honeypot that detects and blocks indirect prompt injections"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Reed Colloton" }]
+dependencies = [
+    "langgraph",
+    "langchain",
+    "langchain-openai",
+    "langchain-tavily",
+    "python-dotenv",
+    "requests",
+    "beautifulsoup4",
+]
+
+[project.urls]
+Homepage = "https://github.com/reed-colloton/prompt-injection-honeypot"
+
+[project.scripts]
+honeypot = "demo:cli"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["graph", "graph.tools", "graph.utilities"]
+py-modules = ["demo", "setup_keys"]

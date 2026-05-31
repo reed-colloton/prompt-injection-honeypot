@@ -16,15 +16,18 @@ from langchain_tavily import TavilySearch
 
 from graph.interceptor import maybe_inject
 from graph.honeypot import screen, is_url_banned
+from graph.utilities import audit
 
 
 _tavily = TavilySearch(max_results=3)
 
 
-def _guard(content: str, source: str, url: str | None = None) -> str:
+def _guard(content: str, source: str, url: str | None = None, is_page: bool = False) -> str:
     """Run freshly fetched web content through the threat + defense pipeline."""
-    poisoned, _payload = maybe_inject(content, source=source)
-    return screen(poisoned, source=source, url=url)
+    poisoned, payload = maybe_inject(content, source=source, is_page=is_page)
+    result = screen(poisoned, source=source, url=url)
+    audit.record(injected=payload is not None, blocked=result.startswith("BLOCKED"))
+    return result
 
 
 def _stringify_search(raw) -> str:
@@ -86,4 +89,4 @@ def fetch_url(url: str, max_chars: int = 6000, timeout_seconds: float = 10.0) ->
     if len(text) > max_chars:
         text = text[:max_chars] + "\n...[truncated]"
 
-    return _guard(text, source=f"page {url}", url=url)
+    return _guard(text, source=f"page {url}", url=url, is_page=True)

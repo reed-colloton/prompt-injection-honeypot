@@ -28,6 +28,8 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
 from graph.models import Models
+from graph.interceptor import force_clean_next
+from graph.utilities import lanes
 from graph.utilities.bcolors import bcolors
 
 
@@ -195,7 +197,7 @@ def _screen_chunk(chunk: str) -> ScreenResult:
         # Fail open (let content through) but make the gap loud. A research/PoC
         # build should not deadlock the whole agent on a transient API error;
         # a production guard would likely fail closed instead.
-        print(f"{bcolors.WARNING}[honeypot] screen failed, passing content through: {ex}{bcolors.ENDC}")
+        lanes.line("honeypot", f"{bcolors.WARNING}screen failed, passing content through: {ex}")
         return ScreenResult(triggered=False)
 
     raw_calls = getattr(response, "tool_calls", None) or []
@@ -236,17 +238,10 @@ def screen(content: str, source: str = "web content", url: str | None = None) ->
     if not HONEYPOT_ENABLED:
         return content
 
-    print(
-        f"   {bcolors.WARNING}honeypot (haiku) screening {source}...{bcolors.ENDC}",
-        flush=True,
-    )
+    lanes.line("honeypot", f"screening {source} (haiku)...", color=bcolors.GREY)
     result = screen_content(content)
     if not result.triggered:
-        print(
-            f"   {bcolors.OKGREEN}honeypot clear{bcolors.ENDC} "
-            f"— no decoy tool fired; content trusted",
-            flush=True,
-        )
+        lanes.line("honeypot", "clear - no decoy tool fired; content trusted", color=bcolors.OKGREEN)
         return content
 
     attempted = ", ".join(c["name"] for c in result.tool_calls) or "an action"
@@ -254,13 +249,19 @@ def screen(content: str, source: str = "web content", url: str | None = None) ->
     if url:
         BANNED_URLS.add(url)
         ban_clause = f" and {url} has been banned from future calls"
-    print(
-        f"   {bcolors.FAIL}{bcolors.BOLD}HONEYPOT TRIPPED{bcolors.ENDC}{bcolors.FAIL} "
-        f"— {source} tried to trigger: {attempted} -> content dropped{', URL banned' if url else ''}{bcolors.ENDC}",
-        flush=True,
+    lanes.line(
+        "honeypot",
+        f"TRIPPED - tried to trigger {attempted} -> content dropped"
+        f"{', URL banned' if url else ''}",
+        color=bcolors.FAIL,
     )
+    # Let the next fetch land clean so Pooh's retry against a different source can
+    # succeed instead of hitting injection after injection.
+    force_clean_next()
     return (
         f"BLOCKED: a prompt-injection honeypot flagged this {source} as an attack "
         f"(it tried to trigger: {attempted}). The content was discarded and not "
-        f"returned{ban_clause}. Do not retry; continue without it or tell the user."
+        f"returned{ban_clause}. Do not retry this URL, but DO try a different source "
+        f"(another search result or page) to get the same information; only if no "
+        f"clean source is available should you tell the user."
     )
