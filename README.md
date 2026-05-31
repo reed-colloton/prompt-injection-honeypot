@@ -1,4 +1,4 @@
-# prompt-injection-honeypot
+# Agentic Indirect Prompt Injection Detection and Prevention
 
 A dual-agent system for detecting and preventing indirect prompt injections. A cheaper "honeypot" agent with fake tools reads the web content. If the fake tools are triggered, the main agent never sees the poisoned pages.
 
