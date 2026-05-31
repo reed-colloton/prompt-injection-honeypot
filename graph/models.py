@@ -1,5 +1,7 @@
 class Models:
     sonnet_4 = "anthropic/claude-sonnet-4"
+    sonnet_4_6 = "anthropic/claude-sonnet-4.6"
+    haiku_4_5 = "anthropic/claude-haiku-4.5"
     gpt_5 = "openai/gpt-5"
     gpt_oss = "openai/gpt-oss-120b"
     deepseek_v3 = "deepseek/deepseek-chat-v3.1"

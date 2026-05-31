@@ -8,13 +8,12 @@ from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain_openai import ChatOpenAI
-from langchain_tavily import TavilySearch
 from langgraph.prebuilt import ToolNode, tools_condition
 
 
 from graph.models import Models
 from graph.tools.bank import get_balance, transfer_funds
-from graph.tools.local_scraper import localhost_scrape
+from graph.tools.web import web_search, fetch_url
 from graph.prompts import Prompts
 
 
@@ -26,7 +25,7 @@ class State(TypedDict):
 
 graph_builder = StateGraph(State)
 checkpointer = InMemorySaver()
-current_model = Models.gemini_pro
+current_model = Models.sonnet_4_6
 
 llm = ChatOpenAI(
     model=current_model,
@@ -34,10 +33,9 @@ llm = ChatOpenAI(
     api_key=os.environ["OPENROUTER_API_KEY"],
     streaming=True,
 )
-web_search = TavilySearch(max_results=2)
 bank_tools = [get_balance, transfer_funds]
-local_tools = [localhost_scrape]
-tools = [web_search, *bank_tools, *local_tools]
+web_tools = [web_search, fetch_url]
+tools = [*web_tools, *bank_tools]
 llm_with_tools = llm.bind_tools(tools)
 
 

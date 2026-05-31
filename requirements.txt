@@ -6,4 +6,3 @@ langchain-tavily
 dotenv
 requests
 beautifulsoup4
-flask
