@@ -14,15 +14,15 @@ A dual-agent system for detecting and preventing indirect prompt injections. A c
 
 ```bash
 brew install reed-colloton/tap/prompt-injection-honeypot
+
 honeypot
 ```
 
-On first run you're prompted for an **OpenRouter API key**
-([openrouter.ai/keys](https://openrouter.ai/keys)) and a **Tavily API key**
+On the first run you're prompted for an OpenRouter API key
+([openrouter.ai/keys](https://openrouter.ai/keys)) and a Tavily (web search) API key
 ([app.tavily.com](https://app.tavily.com/home)). They're saved to
 `~/.config/prompt-injection-honeypot/config.json`, so you're only asked once.
-Either key can also be supplied via an `OPENROUTER_API_KEY` / `TAVILY_API_KEY`
-environment variable (or a local `.env` file), which takes precedence.
+Either key can also be supplied via `OPENROUTER_API_KEY`, `TAVILY_API_KEY`.
 
 ### From source
 
