@@ -31,8 +31,13 @@ pip install -r requirements.txt
 python demo.py    # interactive demo with tool call and thinking observability
 ```
 
-Type a task and watch each step in its own color-coded lane: **ATTACKER** (the
-interceptor poisoning traffic), **HONEYPOT** (the screening verdict), and
+Type a task and watch each step in its own color-coded lane: 
+
+**ATTACKER** (the
+interceptor poisoning traffic), 
+
+**HONEYPOT** (the screening verdict), and
+
 **POOH** (the assistant's tool calls, what it receives, and its reasoning).
 
 CLI commands: `/honeypot on|off`, `/inject <0..1>`, `quit`.
