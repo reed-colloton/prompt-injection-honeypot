@@ -4,13 +4,12 @@ A dual-agent system for detecting and preventing indirect prompt injections. A c
 
 ## How it works
 
-- **Pooh** (`claude-sonnet-4.6`) — the main agent runs a ReAct loop with real
-  web search tools. When a source is blocked, Pooh does not give up: it retries a
-  different source until it gets a clean one.
-- **Honeypot** (`claude-haiku-4.5`) — a cheaper model bound with broad decoy
-  tools. Every Pooh web search tool call, the Honeypot agent screens the content and is given mock tools and a system prompt to call all tools requested. If no tools are called, web content is approved and passed to second agent (Pooh). If a decoy tool fires, the content is dropped (never returned to Pooh) and the URL is banned for the session.
+- **Pooh** (`claude-sonnet-4.6`) — main ReAct agent with
+  web search tools.
+- **Honeypot** (`claude-haiku-4.5`) — a cheaper model with broad (and fake)
+  tools. Every Pooh web search, the Honeypot agent is given the web content and a system prompt to take any requested action. If a decoy tool fires, the content is not returned to Pooh and the URL is banned.
 
-## Install
+## Try demo
 
 ```bash
 brew install reed-colloton/tap/prompt-injection-honeypot
@@ -19,25 +18,28 @@ honeypot
 ```
 
 On the first run you're prompted for an OpenRouter API key
-([openrouter.ai/keys](https://openrouter.ai/keys)) and a Tavily (web search) API key
+([openrouter.ai/keys](https://openrouter.ai/keys)) and a Tavily (web search) API key 
 ([app.tavily.com](https://app.tavily.com/home)). They're saved to
 `~/.config/prompt-injection-honeypot/config.json`.
-Can also use env vars `OPENROUTER_API_KEY`, `TAVILY_API_KEY`.
+Can also use env vars `OPENROUTER_API_KEY` and `TAVILY_API_KEY`.
 
-### From source
+### Or from source
 
 ```bash
+git clone https://github.com/reed-colloton/prompt-injection-honeypot
+
+cd prompt-injection-honeypot
+
 pip install -r requirements.txt
-python demo.py    # interactive demo with tool call and thinking observability
+
+python demo.py
 ```
 
-Type a task that needs web tools and watch each step: 
+CLI commands: 
 
-**ATTACKER** (the interceptor poisoning web content), 
+`/honeypot on|off` -- turn screening on/off
 
-**HONEYPOT** (the screening agent), and
+`/inject <0..1>` -- probability of injection (default 0.6)
 
-**POOH** (the main assistant's tool calls, what it receives and its reasoning).
-
-CLI commands: `/honeypot on|off`, `/inject <0..1>`, `quit`.
+`quit` -- exit
 
